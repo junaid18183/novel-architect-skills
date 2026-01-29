@@ -93,10 +93,73 @@ The skill follows this exact sequence, never skipping ahead:
 9. **Write Synopsis** → Full story outline (beginning → middle → end)
 10. **Create Timeline** → Chronological event map
 11. **Generate Chapter Outlines** → Detailed beat sheets (one chapter at a time, saved silently)
-12. **Draft All Chapters** → Write complete chapter drafts (one at a time, following outlines)
-13. **Review Each Chapter** → Revise and refine each draft (one at a time)
+12. **Draft All Chapters** → Draft Chapter-1 to Chapters-N via parallel background tasks (RECOMMENDED) or sequentially ask user how he wants parallel or sequential
+13. **Review Each Chapter** → All chapters via parallel background tasks (RECOMMENDED) or sequentially
 14. **Final Continuity Check** → Verify consistency across all chapters
 15. **Complete & Present** → Final verification and next steps
+
+### Workflow Optimization Notes:
+
+**Parallel Processing (Steps 12-13):**
+- Steps 12 and 13 support parallel execution via background agents
+- For Step 12: Draft Chapter 1 first for approval, then launch parallel agents for remaining chapters
+- For Step 13: Launch one review agent per chapter simultaneously
+- Parallel execution dramatically reduces total time (minutes vs hours)
+- Each agent works independently with full context access
+- Use `run_in_background=true` parameter in delegate_task calls
+
+**When to Use Parallel vs Sequential:**
+- **Parallel (Default):** 5+ chapters, user wants speed, no special dependencies
+- **Sequential:** User preference, very complex continuity, or debugging needed
+
+---
+
+## Background Task Management
+
+### When to Use Background Tasks
+
+**Use delegate_task with run_in_background=true for:**
+- Drafting multiple chapters (Step 12: Chapters 2-N)
+- Reviewing multiple chapters (Step 13: All chapters)
+- Any parallel, independent operations that don't require sequential execution
+
+**Task Parameters:**
+```
+delegate_task(
+  category="unspecified-high",
+  description="Brief task description (shown to user)",
+  prompt="Detailed instructions with context file paths and requirements",
+  run_in_background=true  # REQUIRED for parallel execution
+)
+```
+
+### Monitoring Background Tasks
+
+**After launching parallel tasks:**
+1. Announce how many tasks launched
+2. Provide estimated completion time
+3. System will notify when tasks complete
+4. User can request status updates or live monitoring
+5. Use `background_output(task_id="...")` to retrieve results
+
+**Status Communication:**
+- "Launched [N] parallel agents for [task description]"
+- "Task [N] of [Total] completed"
+- "All tasks complete. Proceeding to next step."
+
+### Task Design Principles
+
+**Each background task must:**
+1. Be completely self-contained and independent
+2. List ALL required context files explicitly in prompt
+3. Include clear success criteria and output format
+4. Specify what NOT to do (constraints)
+5. Save results to correct file location
+
+**Avoid:**
+- Tasks that depend on other background tasks completing first
+- Vague instructions without file paths
+- Tasks that require user input mid-execution
 
 ---
 
@@ -119,7 +182,7 @@ You can reply with:
 **CRITICAL FILE WRITING RULES:**
 - DO NOT write files until ALL sections of that file are approved
 - Store each approved section in memory only
-- Files are written in ONE operation when complete
+- Each File is written in ONE operation when complete
 - Never revise completed files unless explicitly asked
 - Progress through sections sequentially, never jumping ahead
 
@@ -159,7 +222,8 @@ Start with a warm, inviting question:
 
 Wait for response, then:
 
-> "What language will you write in? English, Hindi, or bilingual?"
+> "What language will you write in?
+> 1. English, 2. Hindi"
 
 Wait for response, then:
 
@@ -173,7 +237,7 @@ Wait for response, then:
 >
 > Does this feel true to what you're holding?"
 
-Wait for confirmation before proceeding.
+Wait for confirmation before proceeding. And remember this is our North Star.
 
 ---
 
@@ -286,8 +350,7 @@ After creating structure:
 
 ### Section 3.1: The North Star
 
-**What it is:** The one-sentence emotional reason this story must exist.
-This is not a question , rather provide the exact core idea user provided initially
+**What it is:** This is the original core-idea user provided. Show the same lines to user and ask for confirmation.
 
 **Propose based on their core idea:**
 
@@ -296,7 +359,7 @@ This is not a question , rather provide the exact core idea user provided initia
 > Based on what you've shared, here's what I sense:
 >
 > **North Star:**
-> [One sentence capturing the emotional core]
+> [Users orignial North Star given in Section 1]
 >
 > Does this feel true to what you're holding?
 > You can reply with:
@@ -308,13 +371,14 @@ This is not a question , rather provide the exact core idea user provided initia
 
 **Example:**
 > **North Star:**
-> "This story must be told because it reveals how the places we call home can slip away before we even notice we've lost them."
+> "This is story follows an ordinary man in a tier-3 town in MP. He observes life quietly, especially the lives of women"
 
 ---
 
 ### Section 3.2: Title
 
 **What it is:** A working title (can change, but helps focus the vision).
+**This ideally user should have provided in Section 1 , if so use it, if not then only Propose.
 
 **Propose 3-4 options:**
 
@@ -1161,47 +1225,98 @@ Store in memory.
 
 ## Step 12: Draft All Chapters
 
-**Important:** Draft COMPLETE chapters one at a time, following the outline and all context files.
+**Important:** Draft COMPLETE chapters following the outline and all context files.
 
-**Announce start:**
+### Execution Strategy:
 
-> "I'll now draft all chapters based on the outlines. Starting with Chapter 1..."
+**For Chapter 1 ONLY:**
 
-### Drafting Workflow for Each Chapter:
+1. Draft Chapter 1 manually and present to user for approval
+2. Wait for user confirmation before proceeding
+3. This establishes the voice and sets expectations
 
-**For Chapter N:**
+**Announce:**
+
+> "I'll draft Chapter 1 first for your approval. Would you like to see the draft here first, or should I save it directly?"
+
+**After Chapter 1 approval:**
+
+**For Chapters 2-N (Parallel Execution Recommended):**
+
+> "I can now draft the remaining chapters (2-[N]) using two approaches:
+>
+> 1. **Parallel (Faster):** Launch [N-1] background agents, one per chapter, all drafting simultaneously
+> 2. **Sequential:** Draft one chapter at a time in order
+>
+> Which approach would you prefer?"
+
+### Parallel Drafting Workflow (Recommended):
+
+**Launch one background task per remaining chapter:**
+
+For each chapter N (where N = 2 to total chapters):
+
+```
+delegate_task(
+  category="unspecified-high",
+  description="Draft Chapter N of [Project Name]",
+  prompt="TASK: Draft Chapter N as complete prose (1,000-1,400 words).
+
+  REQUIRED CONTEXT FILES TO READ:
+  - Outline/outline-chapter-N.md (chapter beat sheet)
+  - Style.md (narrative voice, tone, language rules)
+  - Characters.md (character profiles)
+  - Worldbuilding.md (setting, atmosphere)
+  - Timeline.md (chronological accuracy)
+  - Synopsis.md (story direction)
+  - Chapters/chapter-1.md (established voice from approved chapter)
+  - Chapters/chapter-(N-1).md (if N > 2, for continuity)
+
+  DRAFTING REQUIREMENTS:
+  - Transform outline beats into full prose
+  - Show moment-by-moment, never summarize
+  - Follow Style.md voice and tone exactly
+  - Maintain 1,000-1,400 words
+  - Preserve emotional restraint and subtlety
+  - Honor established character behavior
+  - Respect silence and stillness as narrative tools
+
+  OUTPUT: Save complete draft to Chapters/chapter-N.md
+  Format:
+  # Chapter N: [Title]
+  [Complete prose draft]
+
+  MUST DO: Read ALL context files before drafting. Cross-check continuity with previous chapter.
+  MUST NOT: Add plot events not in outline. Change established voice. Summarize instead of showing.",
+  run_in_background=true
+)
+```
+
+**Announce all tasks launched:**
+
+> "Launched [N-1] parallel drafting agents for Chapters 2-[N]. You'll be notified as each completes. Estimated time: [X] minutes."
+
+### Sequential Drafting Workflow (Alternative):
+
+**For each Chapter N (2 to total):**
 
 1. **Read context files:**
-   - `Outline/outline-chapter-N.md` (the chapter's beat sheet)
-   - `Style.md` (narrative voice, tone, language rules)
-   - `Characters.md` (character profiles and arcs)
-   - `Worldbuilding.md` (setting and atmosphere)
-   - `Timeline.md` (ensure chronological accuracy)
-   - `Synopsis.md` (overall story direction)
-   - `Chapters/chapter-(N-1).md` (if exists, for continuity)
+   - `Outline/outline-chapter-N.md`
+   - `Style.md`, `Characters.md`, `Worldbuilding.md`
+   - `Timeline.md`, `Synopsis.md`
+   - `Chapters/chapter-(N-1).md` (for continuity)
 
-2. **Draft the complete chapter:**
+2. **Draft complete chapter** (1,000-1,400 words)
    - Transform outline beats into full prose
    - Show moment-by-moment, never summarize
-   - Follow Style.md voice and tone exactly
-   - Maintain 1,000-1,400 words per chapter
-   - Preserve emotional restraint and subtlety
-   - Honor all established character behavior
-   - Respect silence and stillness as narrative tools
+   - Follow Style.md exactly
+   - Preserve emotional restraint
 
-3. **Save to `Chapters/chapter-N.md`** with format:
-   ```markdown
-   # Chapter N: [Title]
+3. **Save to `Chapters/chapter-N.md`**
 
-   [Complete prose draft]
-   ```
+4. **Announce:** "Chapter [N] drafted."
 
-4. **Announce completion simply:**
-   > "Chapter [N] drafted."
-
-5. **Move to next chapter immediately** (no waiting for approval during drafting phase).
-
-**Continue until ALL chapters are drafted.**
+5. **Move to next chapter immediately**
 
 **After all chapters drafted:**
 
@@ -1213,34 +1328,94 @@ Store in memory.
 
 **Important:** Review and refine each chapter draft while preserving voice and intent.
 
-**Announce start:**
+### Execution Strategy:
 
-> "I'll now review and refine each chapter. Starting with Chapter 1..."
+**Recommend Parallel Execution:**
 
-### Review Workflow for Each Chapter:
+> "I can review all [N] chapters using two approaches:
+>
+> 1. **Parallel (Faster):** Launch [N] background agents, one per chapter, all reviewing simultaneously
+> 2. **Sequential:** Review one chapter at a time in order
+>
+> Which approach would you prefer?"
 
-**For Chapter N:**
+### Parallel Review Workflow (Recommended):
+
+**Launch one background task per chapter:**
+
+For each chapter N (1 to total chapters):
+
+```
+delegate_task(
+  category="unspecified-high",
+  description="Review and refine Chapter N of [Project Name]",
+  prompt="TASK: Review and gently refine Chapter N draft.
+
+  EXPECTED OUTCOME: Improved draft saved as Chapters/chapter-N.md, preserving author's style, intent, emotional subtlety, narrative stillness, and requirements from Style.md.
+
+  REQUIRED CONTEXT FILES TO READ:
+  - Chapters/chapter-N.md (current draft)
+  - Outline/outline-chapter-N.md (original plan)
+  - Chapters/chapter-(N-1).md (if N > 1, for continuity)
+  - Chapters/chapter-(N+1).md (if exists, for forward continuity)
+  - Style.md (voice and tone guidelines)
+  - Characters.md (character consistency)
+  - Timeline.md (chronological accuracy)
+  - Worldbuilding.md (setting consistency)
+
+  REVIEW FOCUS AREAS:
+  - Language: Reduce redundancy, tighten phrasing, improve rhythm
+  - Emotion: Clarify undercurrents, strengthen subtext, avoid over-explanation
+  - Dialogue: Make speech natural, remove exposition, preserve character voice
+  - Pacing: Smooth transitions, balance stillness and movement
+  - Word count: Ensure 1,000-1,400 words; expand slightly if needed
+
+  REVISION PRINCIPLES:
+  - Preserve author's voice above all else
+  - Revise gently; never overwrite intention
+  - Clarify emotion without explaining it
+  - Maintain narrative stillness and restraint
+  - Respect ambiguity and silence
+  - Improve rhythm, not drama
+
+  MUST DO: Cross-check with outline, prior/next chapters, and all context files. Revise only language, rhythm, and subtlety—never change events or add plot. Save when refined and elegant.
+
+  MUST NOT: Introduce new scenes or events. Break authorial voice. Over-explain or summarize emotion. Resolve ambiguity without cause. Add new characters. Resolve future conflicts.
+
+  OUTPUT: Save refined draft to Chapters/chapter-N.md (overwrite existing draft).",
+  run_in_background=true
+)
+```
+
+**Announce all tasks launched:**
+
+> "Launched [N] parallel review agents for all chapters. You'll be notified as each completes. Estimated time: [X] minutes."
+
+**Wait for all tasks to complete, then announce:**
+
+> "All [N] chapters reviewed and refined. Ready for final continuity check?"
+
+### Sequential Review Workflow (Alternative):
+
+**For each Chapter N:**
 
 1. **Read files:**
    - `Chapters/chapter-N.md` (current draft)
    - `Outline/outline-chapter-N.md` (original plan)
-   - `Chapters/chapter-(N-1).md` (previous chapter for continuity)
-   - `Style.md` (voice and tone guidelines)
-   - `Characters.md` (character consistency)
-   - `Timeline.md` (chronological accuracy)
-   - `Worldbuilding.md` (setting consistency)
+   - `Chapters/chapter-(N-1).md` (previous chapter)
+   - `Style.md`, `Characters.md`, `Timeline.md`, `Worldbuilding.md`
 
 2. **Review focus areas:**
-   - **Language:** Reduce redundancy, tighten phrasing, improve rhythm
-   - **Emotion:** Clarify undercurrents, strengthen subtext, avoid over-explanation
-   - **Dialogue:** Make speech natural, remove exposition, preserve character voice
-   - **Pacing:** Smooth transitions, balance stillness and movement
-   - **Word count:** Ensure 1,000-1,400 words; expand slightly if needed
+   - Language: Reduce redundancy, improve rhythm
+   - Emotion: Clarify subtext, avoid over-explanation
+   - Dialogue: Natural speech, preserve character voice
+   - Pacing: Smooth transitions, balance stillness and movement
+   - Word count: 1,000-1,400 words
 
 3. **Revision principles:**
-   - Preserve the author's voice above all else
+   - Preserve author's voice above all
    - Revise gently; never overwrite intention
-   - Clarify emotion without explaining it
+   - Clarify emotion without explaining
    - Maintain narrative stillness and restraint
    - Respect ambiguity and silence
    - Improve rhythm, not drama
@@ -1248,14 +1423,11 @@ Store in memory.
    - DO NOT introduce new characters
    - DO NOT resolve future conflicts
 
-4. **Save revised chapter** to `Chapters/chapter-N.md` (overwrite draft).
+4. **Save revised chapter** to `Chapters/chapter-N.md`
 
-5. **Announce completion:**
-   > "Chapter [N] reviewed and refined."
+5. **Announce:** "Chapter [N] reviewed and refined."
 
-6. **Move to next chapter immediately.**
-
-**Continue until ALL chapters reviewed.**
+6. **Move to next chapter immediately**
 
 **After all chapters reviewed:**
 
