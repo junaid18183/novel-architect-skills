@@ -147,6 +147,7 @@ Extract:
 - **Language**: "an english novel" → `english` | "hindi" | "bilingual"
 - **Name**: "named lost-horizon" → `lost-horizon` (becomes folder name)
 - **Core idea**: Quote-wrapped description
+- For specialized genre support, consult @genre.md, @fantasy.md, or @mystery.md.
 
 ### Otherwise, Ask Gently
 
@@ -286,6 +287,7 @@ After creating structure:
 ### Section 3.1: The North Star
 
 **What it is:** The one-sentence emotional reason this story must exist.
+This is not a question , rather provide the exact core idea user provided initially
 
 **Propose based on their core idea:**
 
