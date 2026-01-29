@@ -182,9 +182,11 @@ You can reply with:
 **CRITICAL FILE WRITING RULES:**
 - DO NOT write files until ALL sections of that file are approved
 - Store each approved section in memory only
+- SAVE files IMMEDIATELY after all sections of that file are complete and approved
 - Each File is written in ONE operation when complete
 - Never revise completed files unless explicitly asked
 - Progress through sections sequentially, never jumping ahead
+- Foundation files (Braindump, Genre, Style, etc.) must be saved before moving to Outlines
 
 ### Tone & Voice
 
@@ -1169,47 +1171,49 @@ Store in memory.
 
 ### For Each Chapter:
 
-**Important:** Create the outline file SILENTLY without showing the content. Only announce completion.
+**Important:** Show each chapter outline for approval BEFORE saving to file.
 
-**Propose outline structure (ask for approval):**
+**Propose outline for Chapter [N]:**
 
-> "I'm ready to create the outline for Chapter [N]. Should I proceed?"
+> "Here's the outline for Chapter [N]:
+>
+> # Chapter [N]: [Title based on synopsis/timeline]
+>
+> ## Chapter Goal
+> [What this chapter accomplishes in the story]
+>
+> ## POV Character
+> [Whose perspective]
+>
+> ## Setting
+> [Where and when this takes place]
+>
+> ## Key Beats
+> 1. [Beat 1]
+> 2. [Beat 2]
+> 3. [Beat 3]
+> 4. [Beat 4]
+>
+> ## Emotional Arc
+> [Character's emotional journey: starts feeling X → ends feeling Y]
+>
+> ## Chapter Hook
+> [How this chapter ends to pull reader forward]
+>
+> ## Notes
+> [Any additional guidance for drafting]
+>
+> Does this feel true to what you're holding?
+> You can reply with:
+> 1. **Yes** (approve and save)
+> 2. **Tweak** (tell me what to adjust)
+> 3. **Rewrite** (I'll regenerate with a different approach)"
 
-**Wait for approval (yes/number).**
+**Wait for approval.**
 
-**Then create `Outline/outline-chapter-N.md` with this structure:**
+**After approval, save to `Outline/outline-chapter-N.md` and announce:**
 
-```markdown
-# Chapter [N]: [Title based on synopsis/timeline]
-
-## Chapter Goal
-[What this chapter accomplishes in the story]
-
-## POV Character
-[Whose perspective]
-
-## Setting
-[Where and when this takes place]
-
-## Key Beats
-1. [Beat 1]
-2. [Beat 2]
-3. [Beat 3]
-4. [Beat 4]
-
-## Emotional Arc
-[Character's emotional journey: starts feeling X → ends feeling Y]
-
-## Chapter Hook
-[How this chapter ends to pull reader forward]
-
-## Notes
-[Any additional guidance for drafting]
-```
-
-**After creating the file, simply announce:**
-
-> "Chapter [N] outline complete."
+> "Chapter [N] outline saved."
 
 **Then immediately ask:**
 
@@ -1219,7 +1223,7 @@ Store in memory.
 
 **After ALL chapter outlines created:**
 
-> "All [N] chapter outlines are complete in Outline/ folder. Ready to draft Chapter 1?"
+> "All [N] chapter outlines are complete and saved in Outline/ folder. Ready to draft Chapter 1?"
 
 ---
 
